@@ -3,45 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <title>選挙ニュースティッカー</title>
-<style>
-  #ticker {
-    position: absolute;
-    white-space: nowrap;
-    color: white;
-    font-size: 40px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    font-family: 'Noto Sans JP', sans-serif;
-    left: 100%;
-    top: 35px; /* ← 調整ポイント: 黒帯中央に表示されるように */
-    animation: scroll-left 600s linear infinite;
-  }
-
-  #container {
-    position: relative;
-    width: 100%;
-    height: 75px; /* ← 高さは15px増し */
-    overflow: hidden;
-    background: black;
-  }
-
-  @keyframes scroll-left {
-    0% {
+  <style>
+    #ticker {
+      position: absolute;
+      white-space: nowrap;
+      color: white;
+      font-size: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
+      font-family: 'Noto Sans JP', sans-serif;
       left: 100%;
+      top: 35px; /* 表示位置はそのまま */
     }
-    100% {
-      left: -100%;
-    }
-  }
 
-  body {
-    margin: 0;
-    background-color: #00ff00; /* OBS用グリーンバック */
-    width: 1920px;
-    height: 1080px;
-    overflow: hidden;
-  }
-</style>
+    #container {
+      position: relative;
+      width: 100%;
+      height: 75px; /* 高さ15px増し */
+      overflow: hidden;
+      background: black;
+    }
+
+    body {
+      margin: 0;
+      background-color: #00ff00; /* OBS用グリーンバック */
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+    }
+  </style>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet" />
 </head>
 <body>
@@ -53,31 +43,31 @@
     const ticker = document.getElementById('ticker');
     const container = document.getElementById('container');
 
-    // スクロール開始関数
     function startScroll() {
       const textWidth = ticker.offsetWidth;
       const containerWidth = container.offsetWidth;
       const distance = containerWidth + textWidth;
-      const speed = 85; // px/秒（← 以前は100）
+      const speed = 85; // px/sec
       const duration = distance / speed;
 
-      // 初期位置リセット
+      // 初期位置を右端に戻す
       ticker.style.transition = 'none';
       ticker.style.left = containerWidth + 'px';
 
-      // 少し遅れてスタート
-      setTimeout(() => {
-        ticker.style.transition = `left ${duration}s linear`;
-        ticker.style.left = `-${textWidth}px`;
-      }, 50);
+      requestAnimationFrame(() => {
+        // スクロール開始（少し遅らせて transition を適用）
+        requestAnimationFrame(() => {
+          ticker.style.transition = `left ${duration}s linear`;
+          ticker.style.left = `-${textWidth}px`;
+        });
+      });
 
-      // 終わったら再スタート
+      // 終了後に再実行
       ticker.ontransitionend = () => {
-        startScroll();
+        startScroll(); // 再描画＆再スタート
       };
     }
 
-    // ニュース取得・表示
     async function fetchNews() {
       try {
         const response = await fetch('/election-news');
@@ -92,21 +82,16 @@
           ticker.textContent = text;
         }
 
-        // 再スタート
-        ticker.style.transition = 'none';
-        ticker.style.left = container.offsetWidth + 'px';
-
-        setTimeout(() => {
-          startScroll();
-        }, 100);
+        // ニュース読み込み後にスクロール開始
+        startScroll();
 
       } catch (e) {
         ticker.textContent = 'ニュース読み込みエラー: ' + e.message;
       }
     }
 
-fetchNews();
-setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとにニュース取得
+    fetchNews();
+    setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとにニュース取得
   </script>
 </body>
 </html>
