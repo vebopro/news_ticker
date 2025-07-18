@@ -1,4 +1,4 @@
-const express = require('express');
+ï»¿const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cors = require('cors');
@@ -10,34 +10,34 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ƒLƒƒƒbƒVƒ…—p•Ï”
-let cachedHeadlines = [{ title: '‘I‹“‘¬•ñ‚Ìæ“¾‚ğ€”õ’†‚Å‚·', time: '' }];
+// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ç”¨å¤‰æ•°
+let cachedHeadlines = [{ title: 'é¸æŒ™é€Ÿå ±ã®å–å¾—ã‚’æº–å‚™ä¸­ã§ã™', time: '' }];
 let lastUpdated = null;
 
-// ƒXƒNƒŒƒCƒsƒ“ƒOŠÖ”
+// ã‚¹ã‚¯ãƒ¬ã‚¤ãƒ”ãƒ³ã‚°é–¢æ•°
 async function fetchElectionHeadlines() {
   try {
-    const url = 'https://news.yahoo.co.jp/pages/20250720';  // ŒÅ’èURLB“®“I‚É•Ï‚¦‚éê‡‚Í•Ê“r‘Î‰‚ğ
+    const url = 'https://news.yahoo.co.jp/pages/20250720';  // å›ºå®šURLã€‚å‹•çš„ã«å¤‰ãˆã‚‹å ´åˆã¯åˆ¥é€”å¯¾å¿œã‚’
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
 
     const headlines = [];
 
-    // ‹L–‚Ìaƒ^ƒO‚ğƒZƒŒƒNƒ^[‚Åæ“¾
+    // è¨˜äº‹ã®aã‚¿ã‚°ã‚’ã‚»ãƒ¬ã‚¯ã‚¿ãƒ¼ã§å–å¾—
     $('a.ArticleItem_pc_link__ZR7Sg').each((_, el) => {
       const title = $(el).text().trim();
 
-      // ŠÔ‚Íeli‚Ì’†‚Ìtimeƒ^ƒOA‚Ü‚½‚Í•Ê‚ÌƒNƒ‰ƒX‚É‚ ‚é‚©‚à
-      // ‚±‚±‚ÍÀÛ‚ÌHTML\‘¢‚É‡‚í‚¹‚Ä“K‹X’²®‚µ‚Ä‚­‚¾‚³‚¢
+      // æ™‚é–“ã¯è¦ªliã®ä¸­ã®timeã‚¿ã‚°ã€ã¾ãŸã¯åˆ¥ã®ã‚¯ãƒ©ã‚¹ã«ã‚ã‚‹ã‹ã‚‚
+      // ã“ã“ã¯å®Ÿéš›ã®HTMLæ§‹é€ ã«åˆã‚ã›ã¦é©å®œèª¿æ•´ã—ã¦ãã ã•ã„
       const li = $(el).closest('li');
       let timeText = '';
 
-      // timeƒ^ƒO‚ª‚ ‚ê‚Î‚»‚±‚©‚çæ“¾
+      // timeã‚¿ã‚°ãŒã‚ã‚Œã°ãã“ã‹ã‚‰å–å¾—
       const timeElem = li.find('time').first();
       if (timeElem.length > 0) {
         timeText = timeElem.text().trim();
       } else {
-        // ‚à‚µtimeƒ^ƒO‚ª‚È‚¯‚ê‚ÎƒNƒ‰ƒX–¼‚È‚Ç‚Åæ“¾—á
+        // ã‚‚ã—timeã‚¿ã‚°ãŒãªã‘ã‚Œã°ã‚¯ãƒ©ã‚¹åãªã©ã§å–å¾—ä¾‹
         const dateElem = li.find('.ArticleItem_date__ZR7Sg').first();
         if (dateElem.length > 0) timeText = dateElem.text().trim();
       }
@@ -47,16 +47,16 @@ async function fetchElectionHeadlines() {
       }
     });
 
-    cachedHeadlines = headlines.length > 0 ? headlines : [{ title: '‘I‹“ŠÖ˜A‚Ì‘¬•ñ‚ÍŒ»İ‚ ‚è‚Ü‚¹‚ñ', time: '' }];
+    cachedHeadlines = headlines.length > 0 ? headlines : [{ title: 'é¸æŒ™é–¢é€£ã®é€Ÿå ±ã¯ç¾åœ¨ã‚ã‚Šã¾ã›ã‚“', time: '' }];
     lastUpdated = new Date();
-    console.log(`[${lastUpdated.toLocaleTimeString()}] ??? ƒwƒbƒhƒ‰ƒCƒ“XVŠ®—¹`);
+    console.log(`[${lastUpdated.toLocaleTimeString()}] ??? ãƒ˜ãƒƒãƒ‰ãƒ©ã‚¤ãƒ³æ›´æ–°å®Œäº†`);
   } catch (e) {
-    cachedHeadlines = [{ title: 'ƒjƒ…[ƒXæ“¾ƒGƒ‰[: ' + e.message, time: '' }];
-    console.error(`[${new Date().toLocaleTimeString()}] ? ƒwƒbƒhƒ‰ƒCƒ“XV¸”s:`, e.message);
+    cachedHeadlines = [{ title: 'ãƒ‹ãƒ¥ãƒ¼ã‚¹å–å¾—ã‚¨ãƒ©ãƒ¼: ' + e.message, time: '' }];
+    console.error(`[${new Date().toLocaleTimeString()}] ? ãƒ˜ãƒƒãƒ‰ãƒ©ã‚¤ãƒ³æ›´æ–°å¤±æ•—:`, e.message);
   }
 }
 
-// ‰‰ñæ“¾ + 5•ª–ˆXV
+// åˆå›å–å¾— + 5åˆ†æ¯æ›´æ–°
 fetchElectionHeadlines();
 setInterval(fetchElectionHeadlines, 5 * 60 * 1000);
 
@@ -64,7 +64,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API‚ÅƒLƒƒƒbƒVƒ…‚ğ•Ô‚·
+// APIã§ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’è¿”ã™
 app.get('/election-news', (req, res) => {
   res.json({ headlines: cachedHeadlines });
 });
