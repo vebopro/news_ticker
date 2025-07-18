@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>選挙ニュースティッカー</title>
   <style>
-    /* CSSもここに書けます */
     #ticker {
       position: absolute;
       white-space: nowrap;
@@ -41,11 +40,21 @@
   <script>
     async function fetchNews() {
       try {
-        const response = await fetch('/election-news');  // ローカルサーバーのエンドポイントに変更
+        const response = await fetch('/election-news');
         const data = await response.json();
         const ticker = document.getElementById('ticker');
-        ticker.textContent = data.headlines || '選挙関連の速報は現在ありません';
 
+        if (!data.headlines || data.headlines.length === 0) {
+          ticker.textContent = '選挙関連の速報は現在ありません';
+          return;
+        }
+
+        // 「タイトル（時間）」を◆でつなぐ
+        const text = data.headlines.map(h => h.time ? `${h.title}（${h.time}）` : h.title).join(' ◆ ');
+
+        ticker.textContent = text;
+
+        // スクロールアニメーション
         ticker.style.transition = 'none';
         ticker.style.left = '100%';
 
@@ -69,13 +78,14 @@
             }, 100);
           }, { once: true });
         }, 100);
+
       } catch (e) {
         document.getElementById('ticker').textContent = 'ニュース読み込みエラー: ' + e.message;
       }
     }
 
     fetchNews();
-    setInterval(fetchNews, 300000);
+    setInterval(fetchNews, 5 * 60 * 1000);
   </script>
 </body>
 </html>

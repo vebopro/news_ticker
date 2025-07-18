@@ -1,38 +1,74 @@
-ï»¿const express = require('express');
+const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const cors = require('cors');  // è¿½åŠ 
+const cors = require('cors');
 const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'public'))); // publicãƒ•ã‚©ãƒ«ãƒ€ã‚’é™çš„é…ä¿¡
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/election-news', async (req, res) => {
+// ƒLƒƒƒbƒVƒ…—p•Ï”
+let cachedHeadlines = [{ title: '‘I‹“‘¬•ñ‚ÌŽæ“¾‚ð€”õ’†‚Å‚·', time: '' }];
+let lastUpdated = null;
+
+// ƒXƒNƒŒƒCƒsƒ“ƒOŠÖ”
+async function fetchElectionHeadlines() {
   try {
-    const response = await axios.get('https://news.yahoo.co.jp/flash');
-    const $ = cheerio.load(response.data);
+    const url = 'https://news.yahoo.co.jp/pages/20250720';  // ŒÅ’èURLB“®“I‚É•Ï‚¦‚éê‡‚Í•Ê“r‘Î‰ž‚ð
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+
     const headlines = [];
 
-    $('div#flashNews article').each((i, element) => {
-      const title = $(element).find('h2').text().trim();
-      if (title.match(/é¸æŒ™|å‚é™¢é¸|è¡†é™¢é¸|æŠ•ç¥¨|å½“é¸|å…š|é–‹ç¥¨|å€™è£œè‡ªæ°‘å…š|è‡ªæ°‘|ä¸Žå…š|å…¬æ˜Ž|ç«‹æ°‘|ç«‹æ†²|ç¶­æ–°|å›½æ°‘|å›½æ°‘æ°‘ä¸»|å…±ç”£|å…±ç”£å…š|ã‚Œã„ã‚|ç¤¾æ°‘|ç¤¾ä¼šæ°‘ä¸»å…š|NHKå…š|æ—§NHK|è«¸æ´¾|ã”ã¼ã†|æ–°å…šãã«ã‚‚ã‚Š|ãã«ã‚‚ã‚Š|ã¤ã°ã•|å¹¸ç¦å…š|å¹¸ç¦å®Ÿç¾å…š|ã‚ªãƒªãƒ¼ãƒ–/i)) {
-        headlines.push(title);
+    // ‹LŽ–‚Ìaƒ^ƒO‚ðƒZƒŒƒNƒ^[‚ÅŽæ“¾
+    $('a.ArticleItem_pc_link__ZR7Sg').each((_, el) => {
+      const title = $(el).text().trim();
+
+      // ŽžŠÔ‚Íeli‚Ì’†‚Ìtimeƒ^ƒOA‚Ü‚½‚Í•Ê‚ÌƒNƒ‰ƒX‚É‚ ‚é‚©‚à
+      // ‚±‚±‚ÍŽÀÛ‚ÌHTML\‘¢‚É‡‚í‚¹‚Ä“K‹X’²®‚µ‚Ä‚­‚¾‚³‚¢
+      const li = $(el).closest('li');
+      let timeText = '';
+
+      // timeƒ^ƒO‚ª‚ ‚ê‚Î‚»‚±‚©‚çŽæ“¾
+      const timeElem = li.find('time').first();
+      if (timeElem.length > 0) {
+        timeText = timeElem.text().trim();
+      } else {
+        // ‚à‚µtimeƒ^ƒO‚ª‚È‚¯‚ê‚ÎƒNƒ‰ƒX–¼‚È‚Ç‚ÅŽæ“¾—á
+        const dateElem = li.find('.ArticleItem_date__ZR7Sg').first();
+        if (dateElem.length > 0) timeText = dateElem.text().trim();
+      }
+
+      if (title) {
+        headlines.push({ title, time: timeText });
       }
     });
 
-    if (headlines.length === 0) {
-      headlines.push('é¸æŒ™é–¢é€£ã®é€Ÿå ±ã¯ç¾åœ¨ã‚ã‚Šã¾ã›ã‚“');
-    }
-
-    res.json({ headlines: headlines.join(' â—† ') });
-  } catch (error) {
-    res.json({ headlines: 'ãƒ‹ãƒ¥ãƒ¼ã‚¹å–å¾—ã‚¨ãƒ©ãƒ¼: ' + error.message });
+    cachedHeadlines = headlines.length > 0 ? headlines : [{ title: '‘I‹“ŠÖ˜A‚Ì‘¬•ñ‚ÍŒ»Ý‚ ‚è‚Ü‚¹‚ñ', time: '' }];
+    lastUpdated = new Date();
+    console.log(`[${lastUpdated.toLocaleTimeString()}] ??? ƒwƒbƒhƒ‰ƒCƒ“XVŠ®—¹`);
+  } catch (e) {
+    cachedHeadlines = [{ title: 'ƒjƒ…[ƒXŽæ“¾ƒGƒ‰[: ' + e.message, time: '' }];
+    console.error(`[${new Date().toLocaleTimeString()}] ? ƒwƒbƒhƒ‰ƒCƒ“XVŽ¸”s:`, e.message);
   }
+}
+
+// ‰‰ñŽæ“¾ + 5•ª–ˆXV
+fetchElectionHeadlines();
+setInterval(fetchElectionHeadlines, 5 * 60 * 1000);
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API‚ÅƒLƒƒƒbƒVƒ…‚ð•Ô‚·
+app.get('/election-news', (req, res) => {
+  res.json({ headlines: cachedHeadlines });
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`?? Server running at http://localhost:${port}`);
 });
