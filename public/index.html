@@ -20,7 +20,7 @@
       background: black;
       overflow: hidden;
       display: flex;
-      align-items: center; /* ←縦中央に揃える */
+      align-items: center; /* 縦中央揃え */
     }
 
     #ticker {
@@ -28,17 +28,8 @@
       color: white;
       font-size: 40px;
       font-family: 'Noto Sans JP', sans-serif;
-      padding-left: 100%;
       position: relative;
-    }
-
-    @keyframes scroll {
-      from {
-        transform: translateX(100%);
-      }
-      to {
-        transform: translateX(-100%);
-      }
+      will-change: transform;
     }
   </style>
 
@@ -54,7 +45,7 @@
     const container = document.getElementById('container');
 
     let newsText = '';
-    let fetchInterval = 60 * 1000;
+    const fetchInterval = 10 * 60 * 1000; // 10分
 
     function startScroll(callback) {
       const textWidth = ticker.offsetWidth;
@@ -63,9 +54,11 @@
       const speed = 100; // px/sec
       const duration = distance / speed;
 
+      // 初期位置を右端（containerの幅）にセット
       ticker.style.transition = 'none';
       ticker.style.transform = `translateX(${containerWidth}px)`;
 
+      // 2フレーム待ってからスクロール開始（スムーズに）
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           ticker.style.transition = `transform ${duration}s linear`;
@@ -73,6 +66,7 @@
         });
       });
 
+      // スクロール終了時の処理
       ticker.ontransitionend = () => {
         if (typeof callback === 'function') callback();
       };
@@ -93,11 +87,13 @@
             .join(' ◆ ');
         }
 
+        // 新しいテキストのみ更新
         if (text !== newsText) {
           newsText = text;
           ticker.textContent = newsText;
         }
 
+        // スクロール開始し、終わったら再度取得＆スクロール
         startScroll(() => {
           setTimeout(fetchNewsAndScroll, 100);
         });
