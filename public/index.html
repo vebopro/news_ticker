@@ -5,15 +5,15 @@
   <title>選挙ニュースティッカー</title>
   <style>
     #ticker {
+      position: absolute;
       white-space: nowrap;
       color: white;
       font-size: 40px;
-      line-height: 55px; /* テキストの高さ調整 */
       background: rgba(0, 0, 0, 0.7);
       padding: 10px 20px;
       font-family: 'Noto Sans JP', sans-serif;
-      position: absolute;
       left: 100%;
+      top: 35px;
     }
 
     #container {
@@ -22,13 +22,11 @@
       height: 75px;
       overflow: hidden;
       background: black;
-      display: flex;
-      align-items: center; /* 垂直中央 */
     }
 
     body {
       margin: 0;
-      background-color: #00ff00; /* OBS用グリーンバック */
+      background-color: #00ff00;
       width: 1920px;
       height: 1080px;
       overflow: hidden;
@@ -45,14 +43,16 @@
     const ticker = document.getElementById('ticker');
     const container = document.getElementById('container');
 
-    function startScroll() {
+    let newsText = ''; // 現在のニュース保存
+    let fetchInterval = 60 * 1000; // 毎60秒で更新
+
+    function startScroll(callback) {
       const textWidth = ticker.offsetWidth;
       const containerWidth = container.offsetWidth;
       const distance = containerWidth + textWidth;
       const speed = 100; // px/sec
       const duration = distance / speed;
 
-      // 初期位置にリセット
       ticker.style.transition = 'none';
       ticker.style.left = containerWidth + 'px';
 
@@ -64,32 +64,43 @@
       });
 
       ticker.ontransitionend = () => {
-        startScroll(); // 終了後に再描画
+        if (typeof callback === 'function') callback();
       };
     }
 
-    async function fetchNews() {
+    async function fetchNewsAndScroll() {
       try {
-        const response = await fetch('/election-news');
+        const response = await fetch('/election-news?_t=' + Date.now()); // キャッシュ防止
         const data = await response.json();
 
+        let text = '';
+
         if (!data.headlines || data.headlines.length === 0) {
-          ticker.textContent = '選挙関連の速報は現在ありません';
+          text = '選挙関連の速報は現在ありません';
         } else {
-          const text = data.headlines
+          text = data.headlines
             .map(h => h.time ? `${h.title}（${h.time}）` : h.title)
             .join(' ◆ ');
-          ticker.textContent = text;
         }
 
-        startScroll();
+        // 変化があれば更新
+        if (text !== newsText) {
+          newsText = text;
+          ticker.textContent = newsText;
+        }
+
+        startScroll(() => {
+          setTimeout(fetchNewsAndScroll, 100); // スクロール完了後すぐ次へ
+        });
+
       } catch (e) {
-        ticker.textContent = 'ニュース読み込みエラー: ' + e.message;
+        ticker.textContent = 'ニュース取得エラー: ' + e.message;
+        setTimeout(fetchNewsAndScroll, fetchInterval);
       }
     }
 
-    fetchNews();
-    setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとに更新
+    // 初期呼び出し
+    fetchNewsAndScroll();
   </script>
 </body>
 </html>
