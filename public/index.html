@@ -8,27 +8,25 @@
       position: absolute;
       white-space: nowrap;
       color: white;
-      font-size: 44px;
-      font-weight: bold;
-      background: rgba(0, 0, 0, 0.9);
-      padding: 10px 40px;
+      font-size: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 20px;
       font-family: 'Noto Sans JP', sans-serif;
       left: 100%;
-      top: 20px;
-      z-index: 10;
+      top: 40px; /* 表示位置はそのまま */
     }
 
     #container {
       position: relative;
       width: 100%;
-      height: 84px;
+      height: 75px; /* 元: 60px → +15px */
       overflow: hidden;
       background: black;
     }
 
     body {
       margin: 0;
-      background-color: #00ff00;
+      background-color: #00ff00; /* OBS用グリーンバック */
       width: 1920px;
       height: 1080px;
       overflow: hidden;
@@ -45,26 +43,31 @@
     const ticker = document.getElementById('ticker');
     const container = document.getElementById('container');
 
+    // スクロール開始関数
     function startScroll() {
       const textWidth = ticker.offsetWidth;
       const containerWidth = container.offsetWidth;
       const distance = containerWidth + textWidth;
-      const speed = 200; // 2倍速：200px/秒
+      const speed = 70; // px/秒（← 以前は100）
       const duration = distance / speed;
 
+      // 初期位置リセット
       ticker.style.transition = 'none';
       ticker.style.left = containerWidth + 'px';
 
+      // 少し遅れてスタート
       setTimeout(() => {
         ticker.style.transition = `left ${duration}s linear`;
         ticker.style.left = `-${textWidth}px`;
-      }, 100);
+      }, 50);
 
+      // 終わったら再スタート
       ticker.ontransitionend = () => {
         startScroll();
       };
     }
 
+    // ニュース取得・表示
     async function fetchNews() {
       try {
         const response = await fetch('/election-news');
@@ -79,6 +82,7 @@
           ticker.textContent = text;
         }
 
+        // 再スタート
         ticker.style.transition = 'none';
         ticker.style.left = container.offsetWidth + 'px';
 
@@ -91,8 +95,8 @@
       }
     }
 
-    fetchNews();
-    setInterval(fetchNews, 5 * 60 * 1000);
+fetchNews();
+setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとにニュース取得
   </script>
 </body>
 </html>
