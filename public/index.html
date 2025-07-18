@@ -5,23 +5,25 @@
   <title>選挙ニュースティッカー</title>
   <style>
     #ticker {
-      position: absolute;
       white-space: nowrap;
       color: white;
       font-size: 40px;
+      line-height: 55px; /* テキストの高さ調整 */
       background: rgba(0, 0, 0, 0.7);
       padding: 10px 20px;
       font-family: 'Noto Sans JP', sans-serif;
+      position: absolute;
       left: 100%;
-      top: 35px; /* 表示位置はそのまま */
     }
 
     #container {
       position: relative;
       width: 100%;
-      height: 75px; /* 高さ15px増し */
+      height: 75px;
       overflow: hidden;
       background: black;
+      display: flex;
+      align-items: center; /* 垂直中央 */
     }
 
     body {
@@ -47,24 +49,22 @@
       const textWidth = ticker.offsetWidth;
       const containerWidth = container.offsetWidth;
       const distance = containerWidth + textWidth;
-      const speed = 85; // px/sec
+      const speed = 100; // px/sec
       const duration = distance / speed;
 
-      // 初期位置を右端に戻す
+      // 初期位置にリセット
       ticker.style.transition = 'none';
       ticker.style.left = containerWidth + 'px';
 
       requestAnimationFrame(() => {
-        // スクロール開始（少し遅らせて transition を適用）
         requestAnimationFrame(() => {
           ticker.style.transition = `left ${duration}s linear`;
           ticker.style.left = `-${textWidth}px`;
         });
       });
 
-      // 終了後に再実行
       ticker.ontransitionend = () => {
-        startScroll(); // 再描画＆再スタート
+        startScroll(); // 終了後に再描画
       };
     }
 
@@ -82,16 +82,14 @@
           ticker.textContent = text;
         }
 
-        // ニュース読み込み後にスクロール開始
         startScroll();
-
       } catch (e) {
         ticker.textContent = 'ニュース読み込みエラー: ' + e.message;
       }
     }
 
     fetchNews();
-    setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとにニュース取得
+    setInterval(fetchNews, 10 * 60 * 1000); // 10分ごとに更新
   </script>
 </body>
 </html>
