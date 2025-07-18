@@ -1,0 +1,16 @@
+﻿{
+  "name": "election-ticker",
+  "version": "1.0.0",
+  "description": "Election news ticker from Yahoo! News flash page",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0",
+    "express": "^4.18.2"
+  },
+  "author": "",
+  "license": "MIT"
+}
