@@ -20,7 +20,7 @@
       background: black;
       overflow: hidden;
       display: flex;
-      align-items: center; /* 縦中央揃え */
+      align-items: center; /* 垂直中央 */
     }
 
     #ticker {
@@ -45,7 +45,8 @@
     const container = document.getElementById('container');
 
     let newsText = '';
-    const fetchInterval = 10 * 60 * 1000; // 10分
+
+    const reloadInterval = 10 * 60 * 1000; // 10分
 
     function startScroll(callback) {
       const textWidth = ticker.offsetWidth;
@@ -54,11 +55,9 @@
       const speed = 100; // px/sec
       const duration = distance / speed;
 
-      // 初期位置を右端（containerの幅）にセット
       ticker.style.transition = 'none';
       ticker.style.transform = `translateX(${containerWidth}px)`;
 
-      // 2フレーム待ってからスクロール開始（スムーズに）
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           ticker.style.transition = `transform ${duration}s linear`;
@@ -66,7 +65,6 @@
         });
       });
 
-      // スクロール終了時の処理
       ticker.ontransitionend = () => {
         if (typeof callback === 'function') callback();
       };
@@ -78,7 +76,6 @@
         const data = await response.json();
 
         let text = '';
-
         if (!data.headlines || data.headlines.length === 0) {
           text = '選挙関連の速報は現在ありません';
         } else {
@@ -87,24 +84,28 @@
             .join(' ◆ ');
         }
 
-        // 新しいテキストのみ更新
         if (text !== newsText) {
           newsText = text;
           ticker.textContent = newsText;
         }
 
-        // スクロール開始し、終わったら再度取得＆スクロール
         startScroll(() => {
           setTimeout(fetchNewsAndScroll, 100);
         });
 
       } catch (e) {
         ticker.textContent = 'ニュース取得エラー: ' + e.message;
-        setTimeout(fetchNewsAndScroll, fetchInterval);
+        setTimeout(fetchNewsAndScroll, reloadInterval);
       }
     }
 
+    // 初回実行
     fetchNewsAndScroll();
+
+    // 10分ごとに強制リロード
+    setInterval(() => {
+      location.reload();
+    }, reloadInterval);
   </script>
 </body>
 </html>
