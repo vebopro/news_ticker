@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>選挙ニュースティッカー</title>
+  <title>Yahoo!ニュースティッカー</title>
   <style>
     html, body {
       margin: 0;
@@ -77,7 +77,7 @@
 
         let text = '';
         if (!data.headlines || data.headlines.length === 0) {
-          text = '選挙関連の速報は現在ありません';
+          text = '速報は現在ありません';
         } else {
           text = data.headlines
             .map(h => h.time ? `${h.title}（${h.time}）` : h.title)
