@@ -11,13 +11,13 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // キャッシュ用変数
-let cachedHeadlines = [{ title: '選挙速報の取得を準備中です', time: '' }];
+let cachedHeadlines = [{ title: 'Yahoo!ニュース速報を準備中です', time: '' }];
 let lastUpdated = null;
 
 // スクレイピング関数
 async function fetchElectionHeadlines() {
   try {
-    const url = 'https://news.yahoo.co.jp/pages/20250720';  // 固定URL。動的に変える場合は別途対応を
+    const url = 'https://news.yahoo.co.jp/flash';  // 固定URL。動的に変える場合は別途対応を
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
 
@@ -47,7 +47,7 @@ async function fetchElectionHeadlines() {
       }
     });
 
-    cachedHeadlines = headlines.length > 0 ? headlines : [{ title: '選挙関連の速報は現在ありません', time: '' }];
+    cachedHeadlines = headlines.length > 0 ? headlines : [{ title: 'ニュース速報は現在ありません', time: '' }];
     lastUpdated = new Date();
     console.log(`[${lastUpdated.toLocaleTimeString()}] ??? ヘッドライン更新完了`);
   } catch (e) {
